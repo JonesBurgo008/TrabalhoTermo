@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Calculadora Ciclo Brayton</title>
+    <style>
+        /* Tema Padrão (Light Mode) */
+        :root {
+            --cor-primaria: #005a9c;
+            --cor-fundo: #f4f7f6;
+            --cor-caixa: #ffffff;
+            --cor-texto: #333333;
+            --cor-borda: #dddddd;
+            --cor-botao: #007bff;
+            --cor-botao-hover: #0056b3;
+            --cor-fundo-tabela-par: #f9f9f9;
+            --cor-fundo-tabela-hover: #f1f1f1;
+            --sombra-caixa: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* TEMA ESCURO (quando o body tiver a classe "dark-mode") */
+        body.dark-mode {
+            --cor-primaria: #4dabf7;
+            --cor-fundo: #121212;
+            --cor-caixa: #1e1e1e;
+            --cor-texto: #e9ecef;
+            --cor-borda: #444444;
+            --cor-fundo-tabela-par: #2c2c2c;
+            --cor-fundo-tabela-hover: #383838;
+            --sombra-caixa: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: var(--cor-fundo);
+            color: var(--cor-texto);
+            margin: 0;
+            padding: 2em;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        
+        .theme-toggle-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 8px 12px;
+            cursor: pointer;
+            border: 1px solid var(--cor-borda);
+            background-color: var(--cor-caixa);
+            color: var(--cor-texto);
+            border-radius: 20px;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: auto;
+        }
+
+        h1, h2 {
+            color: var(--cor-primaria);
+            border-bottom: 2px solid var(--cor-borda);
+            padding-bottom: 10px;
+        }
+
+        .container-flex {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+            margin-top: 20px;
+        }
+
+        .form-section, .results-section {
+            background-color: var(--cor-caixa);
+            border: 1px solid var(--cor-borda);
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: var(--sombra-caixa);
+            flex: 1;
+            min-width: 300px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+
+        form p {
+            margin-bottom: 15px;
+        }
+
+        form input[type="number"] {
+            width: 95%;
+            padding: 8px;
+            border: 1px solid var(--cor-borda);
+            border-radius: 4px;
+            font-size: 1em;
+            background-color: var(--cor-caixa);
+            color: var(--cor-texto);
+        }
+
+        form input[type="submit"] {
+            background-color: var(--cor-botao);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: var(--cor-botao-hover);
+        }
+
+        .table-container {
+            margin-top: 30px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            box-shadow: var(--sombra-caixa);
+        }
+
+        table th, table td {
+            padding: 12px;
+            text-align: center;
+            border: 1px solid var(--cor-borda);
+        }
+
+        table th {
+            background-color: var(--cor-primaria);
+            color: white;
+            font-weight: bold;
+        }
+
+        table tr:nth-child(even) {
+            background-color: var(--cor-fundo-tabela-par);
+        }
+
+        table tr:hover {
+            background-color: var(--cor-fundo-tabela-hover);
+        }
+
+        a {
+            color: var(--cor-botao);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <div class="main-container">
+        <button id="theme-toggle">Mudar Tema</button>
+
+        <h1>Calculadora para Ciclo Brayton Ideal</h1>
+        <p>com Reaquecimento, Regeneração e Intercooler</p>
+        
+        <div class="container-flex">
+            <div class="form-section">
+                <h2>Dados de Entrada</h2>
+                <form action="/" method="post">
+                    <p>Temperatura T1 [K]: 
+                       <input type="number" name="T1" value="{{ T1_input or '300' }}" step="any" required>
+                    </p>
+                    <p>Pressão P1 [kPa]: 
+                       <input type="number" name="P1" value="{{ P1_input or '100' }}" step="any" required>
+                    </p>
+                    <p>Pressão P2 [kPa]: 
+                       <input type="number" name="P2" value="{{ P2_input or '400' }}" step="any" required>
+                    </p>
+                    <p>Temperatura Máxima T6 [K]: 
+                       <input type="number" name="T6" value="{{ T6_input or '1400' }}" step="any" required>
+                    </p>
+                    <p><input type="submit" value="Calcular"></p>
+                </form>
+            </div>
+
+            {% if w_liq is defined %}
+            <div class="results-section">
+                <h2>Resultados da Análise</h2>
+                <ul>
+                    <li><strong>Trabalho Líquido:</strong> {{ w_liq | round(2) }} kJ/kg</li>
+                    <li><strong>Eficiência Térmica:</strong> {{ eficiencia | round(2) }} %</li>
+                    <li>Trabalho dos Compressores: {{ w_c | round(2) }} kJ/kg</li>
+                    <li>Trabalho das Turbinas: {{ w_t | round(2) }} kJ/kg</li>
+                    <li>Calor Adicionado: {{ q_ent | round(2) }} kJ/kg</li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if estados is defined %}
+        <div class="table-container">
+            <h2>Propriedades nos Estados</h2>
+            <table>
+                <tr>
+                    <th>Estado</th><th>Temperatura [K]</th><th>Pressão [kPa]</th><th>Entalpia [kJ/kg]</th>
+                </tr>
+                {% for i in range(1, 11) %}
+                <tr>
+                    <td>{{ i }}</td>
+                    <td>{{ estados[i][0] | round(2) }}</td>
+                    <td>{{ pressoes[i] | round(2) }}</td>
+                    <td>{{ estados[i][2] | round(2) }}</td>
+                </tr>
+                {% endfor %}
+            </table>
+        </div>
+        <br>
+        <a href="/">Fazer novo cálculo</a>
+        {% endif %}
+    </div>
+
+    <script>
+        const themeToggleButton = document.getElementById('theme-toggle');
+        const body = document.body;
+
+        function toggleTheme() {
+            body.classList.toggle('dark-mode');
+            updateTheme();
+        }
+
+        function updateTheme() {
+            if (body.classList.contains('dark-mode')) {
+                localStorage.setItem('theme', 'dark');
+                themeToggleButton.textContent = 'Modo Claro';
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeToggleButton.textContent = 'Modo Escuro';
+            }
+        }
+
+        themeToggleButton.addEventListener('click', toggleTheme);
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-mode');
+            } else {
+                body.classList.remove('dark-mode');
+            }
+            updateTheme(); // Atualiza o texto do botão no carregamento
+        });
+    </script>
+
+</body>
+</html>
